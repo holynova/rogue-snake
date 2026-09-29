@@ -34,13 +34,13 @@
     "qrcode": "^1.5.4",
     "vite": "^8.3.1"
   },
-  "homepage": "https://holynova.github.io/ouroboros-rogue-snake/",
+  "homepage": "https://holynova.github.io/rogue-snake/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/holynova/ouroboros-rogue-snake.git"
+    "url": "git+https://github.com/holynova/rogue-snake.git"
   },
   "bugs": {
-    "url": "https://github.com/holynova/ouroboros-rogue-snake/issues"
+    "url": "https://github.com/holynova/rogue-snake/issues"
   },
   "files": [
     "src",

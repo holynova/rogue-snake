@@ -4,11 +4,11 @@
 
 **贪食蛇 × Roguelike · 纯浏览器 · 零素材**
 
-[▶ 在线试玩 (GitHub Pages)](https://holynova.github.io/ouroboros-rogue-snake/)
+[▶ 在线试玩 (GitHub Pages)](https://holynova.github.io/rogue-snake/)
 &nbsp;·&nbsp;
-[⭐ 源码 (GitHub)](https://github.com/holynova/ouroboros-rogue-snake)
+[⭐ 源码 (GitHub)](https://github.com/holynova/rogue-snake)
 
-<img src="media/gameplay.png" width="880" alt="游戏截图：蛇在地牢中穿行，周围有敌人与食物">
+<img src="screenshot.png" width="880" alt="游戏截图：蛇在地牢中穿行，周围有敌人与食物">
 
 </div>
 
@@ -29,9 +29,9 @@
 ## 手机扫码即玩
 
 <div align="center">
-<img src="media/qr.png" width="200" alt="QR code: https://holynova.github.io/ouroboros-rogue-snake/">
+<img src="qrcode.png" width="200" alt="QR code: https://holynova.github.io/rogue-snake/">
 
-`https://holynova.github.io/ouroboros-rogue-snake/`
+`https://holynova.github.io/rogue-snake/`
 </div>
 
 ## 特点
