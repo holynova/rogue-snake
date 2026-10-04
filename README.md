@@ -1,56 +1,42 @@
-<div align="center">
+# 衔尾者 · OUROBOROS / Rogue Snake
 
-# 衔尾者 · OUROBOROS
+用不断生长的蛇身穿过地牢，通过撕咬、突进与遗物升级清空敌人并下潜。
 
-**贪食蛇 × Roguelike · 纯浏览器 · 零素材**
+A snake dungeon roguelike where body length, dash attacks and relics shape each run.
 
-[▶ 在线试玩 (GitHub Pages)](https://holynova.github.io/rogue-snake/)
-&nbsp;·&nbsp;
-[⭐ 源码 (GitHub)](https://github.com/holynova/rogue-snake)
+[在线体验](https://rogue-snake.xiaosang.cc/) · [源码](https://github.com/holynova/rogue-snake)
 
-<img src="screenshot.png" width="880" alt="游戏截图：蛇在地牢中穿行，周围有敌人与食物">
+![衔尾者 · OUROBOROS / Rogue Snake：真实页面截图](./assets/readme/screenshot.png)
 
-</div>
+## 可以做什么
 
----
+- 长度既是身体也是战斗资源。
+- 清空敌人解锁出口，结算回响用于永久强化。
 
-## 玩法
+## 怎么玩
 
-一条饥饿的蛇在 **12 层程序化地牢**里不断下潜。你不能停下、不能回头，只有不断变长，或者被自己的鳞片消化掉。
-
-- **进食**变长，**撕咬**敌人，**突进**无敌碾碎
-- **长度是资源**：压到自己身上会掉血并消化掉 20% 长度，但不会卡住你——所以「长」同时也是伤害来源
-- 每层出口默认锁死，**清空敌人**才开；也可以付精华强行突破
-- 升级三选一、22 件遗物、7 种敌人、每 5 层一名 BOSS
-- 死亡结算「回响」，在**圣所**兑换永久强化
-
-`WASD` 转向 · `SPACE` 突进 · `E` 交互 · `Q` 冲击波 · `TAB` 图鉴 · `ESC` 暂停
-
-## 手机扫码即玩
-
-<div align="center">
-<img src="qrcode.png" width="200" alt="QR code: https://holynova.github.io/rogue-snake/">
-
-`https://holynova.github.io/rogue-snake/`
-</div>
-
-## 特点
-
-- **零第三方素材**：所有贴图由 Canvas2D 运行时绘制，配乐与音效由 Web Audio 实时合成，仓库里没有一个图片或音频文件
-- **确定性模拟**：固定 1/60 秒步进，同一种子必定生成同一张地图
-- **离线可玩**：无后端、无网络请求，进度存在 `localStorage`
+WASD转向，Space突进，E交互，Q冲击波，Tab图鉴，Esc暂停。
 
 ## 本地运行
 
 ```bash
-npm install
-npm run dev      # http://localhost:5173
-npm run build    # 输出到 docs/（GitHub Pages 目录）
-npm test         # 30 项端到端 + 转向语义检查
+npm ci
+npm run dev
+# 生成生产产物
+npm run build
 ```
 
-## 技术栈
+运行 `npm test` 检查已有游戏规则与转向验收。进度保存在本机浏览器，清理站点数据会移除存档。
 
-Phaser 3 · Vite · 原生 DOM UI · Web Audio · Playwright（测试）
+许可证见 [LICENSE](LICENSE)。
 
-MIT License · 详细设计见 [DEVELOPMENT.md](DEVELOPMENT.md)
+<img src="./assets/readme/qr.png" width="144" alt="扫码打开https://rogue-snake.xiaosang.cc/">
+
+## 发布
+
+```bash
+npm run build
+npx --yes wrangler@4.128.0 deploy --config wrangler.jsonc
+```
+
+从 `master` 同一提交在本地手动发布到Cloudflare Workers。正式地址：[https://rogue-snake.xiaosang.cc/](https://rogue-snake.xiaosang.cc/)。

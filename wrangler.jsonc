@@ -1,0 +1,15 @@
+{
+  "name": "rogue-snake",
+  "account_id": "ef7863c4de93e71c3496f940c8ab4865",
+  "compatibility_date": "2026-10-04",
+  "workers_dev": false,
+  "assets": {
+    "directory": "./docs"
+  },
+  "routes": [
+    {
+      "pattern": "rogue-snake.xiaosang.cc/*",
+      "zone_name": "xiaosang.cc"
+    }
+  ]
+}
