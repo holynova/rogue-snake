@@ -30,11 +30,11 @@ const hex = (c) => `#${(c >>> 0).toString(16).padStart(6, '0')}`;
 
 function footLinks() {
   return el('div', { class: 'foot-links' }, [
-    el('a', { class: 'link', href: REPO_URL, target: '_blank', rel: 'noopener', text: 'GITHUB' }),
-    el('span', { class: 'dot', text: '·' }),
-    el('span', { class: 'dim', text: 'MIT LICENSE' }),
-    el('span', { class: 'dot', text: '·' }),
-    el('a', { class: 'link', href: `${REPO_URL}/stargazers`, target: '_blank', rel: 'noopener', text: 'STAR ★' }),
+    el('a', { class: 'link', href: REPO_URL, target: '_blank', rel: 'noopener', text: 'GitHub' }),
+    el('span', { class: 'dot', text: '/' }),
+    el('span', { class: 'dim', text: 'MIT 协议' }),
+    el('span', { class: 'dot', text: '/' }),
+    el('a', { class: 'link', href: `${REPO_URL}/stargazers`, target: '_blank', rel: 'noopener', text: 'Star ★' }),
   ]);
 }
 
@@ -113,15 +113,33 @@ class UI {
       el('span', { class: 'val ice', text: '1' }),
     ]);
     r.lvVal = r.lvChip.querySelector('.val');
+    r.fpsChip = el('div', { class: 'chip fps-chip', style: 'display:none' }, [
+      el('span', { class: 'lbl', text: 'FPS' }),
+      el('span', { class: 'val', text: '' }),
+    ]);
     r.topRight = el('div', { class: 'cluster right' }, [
-      el('div', { class: 'row' }, [r.escChip, r.lvChip, r.scoreChip]),
+      el('div', { class: 'row' }, [r.escChip, r.lvChip, r.scoreChip, r.fpsChip]),
     ]);
 
     r.relics = el('div', { class: 'relic-strip' });
     r.dashBar = el('div', { class: 'bar dash ready' }, [el('i', { style: 'width:100%' })]);
-    r.dashTip = el('div', { class: 'tip', text: 'SPACE · 突进' });
+    r.dashTip = el('div', { class: 'tip', text: '空格 突进' });
     r.xpBar = el('div', { class: 'bar xp' }, [el('i', { style: 'width:0%' })]);
-    r.xpLabel = el('div', { class: 'tip', text: '' });
+    r.xpLabel = el('div', { class: 'tip xp-label', text: '' });
+    // Touch controls: without these a touch-only player can steer (tap) but
+    // can never dash, interact or descend — the run is unwinnable on mobile.
+    // Shown only on coarse pointers via CSS.
+    const scene = () => window.__ouroboros?.game?.scene?.getScene('game');
+    const touchBtn = (label, fn) => el('button', {
+      class: 'btn touch-btn',
+      onclick: (e) => { e.preventDefault(); fn(); },
+    }, [label]);
+    r.touchControls = el('div', { class: 'touch-controls' }, [
+      touchBtn('突进', () => scene()?.tryDash()),
+      touchBtn('交互', () => scene()?.interact()),
+      touchBtn('冲击波', () => scene()?.blast()),
+      touchBtn('暂停', () => window.__ouroboros?.pause?.()),
+    ]);
     r.bottom = el('div', { class: 'hud-bottom' }, [
       el('div', { class: 'row', style: 'justify-content:space-between;align-items:flex-end' }, [
         r.relics,
@@ -129,7 +147,8 @@ class UI {
           el('div', { class: 'row', style: 'gap:8px;align-items:center' }, [r.dashTip, r.dashBar]),
         ]),
       ]),
-      el('div', { class: 'row', style: 'justify-content:space-between' }, [r.xpLabel, el('span', { class: 'tip', text: 'ESC 暂停 · TAB 图鉴' })]),
+      r.touchControls,
+      el('div', { class: 'row', style: 'justify-content:space-between' }, [r.xpLabel, el('span', { class: 'tip', text: 'ESC 暂停 / TAB 图鉴' })]),
       r.xpBar,
     ]);
 
@@ -160,7 +179,9 @@ class UI {
       hpBar: this.hud.querySelector('.bar.hp'),
       hpFill: this.hud.querySelector('.bar.hp > i'),
       xpFill: this.hud.querySelector('.bar.xp > i'),
-      xpLabel: this.hud.querySelector('.hud-bottom .tip'),
+      xpLabel: this.hud.querySelector('.hud-bottom .xp-label'),
+      fpsChip: this.hud.querySelector('.fps-chip'),
+      fpsVal: this.hud.querySelector('.fps-chip .val'),
     };
     this._lastHearts = -1;
     this._lastRelics = '';
@@ -189,22 +210,27 @@ class UI {
       }
     }
     h.hpVal.textContent = `${Math.max(0, d.hp)}/${total}${d.shield ? ` +${d.shield}` : ''}`;
-    h.lenVal.textContent = d.length;
+    h.lenVal.textContent = `${d.length} 节`;
     h.dmgVal.textContent = d.damage;
     h.escVal.textContent = d.essence;
     h.lvVal.textContent = d.level;
     h.scoreVal.textContent = d.score;
-    h.depthNum.textContent = `DEPTH ${d.depth}`;
-    h.enemyCount.textContent = d.enemies > 0 ? `残敌 ${d.enemies}` : '区域已清空 · 前往出口';
+    h.depthNum.textContent = `第 ${d.depth} 层`;
+    h.enemyCount.textContent = d.enemies > 0 ? `残敌 ${d.enemies}` : '区域已清空，前往出口';
     if (d.hunt) {
       h.compass.style.display = '';
       h.compassArrow.style.transform = `rotate(${Math.atan2(d.hunt.dy, d.hunt.dx) + Math.PI / 2}rad)`;
-      h.compassDist.textContent = String(d.hunt.dist);
+      h.compassDist.textContent = `${d.hunt.dist} 格`;
       h.compass.classList.toggle('boss', !!d.hunt.boss);
     } else {
       h.compass.style.display = 'none';
     }
     h.xpFill.style.width = `${Math.min(100, (d.xp / d.xpNext) * 100)}%`;
+    if (h.xpLabel) h.xpLabel.textContent = `经验 ${d.xp}/${d.xpNext}`;
+    if (h.fpsChip) {
+      h.fpsChip.style.display = d.showFps ? '' : 'none';
+      if (d.showFps) h.fpsVal.textContent = String(d.fps);
+    }
     const ready = d.dashCd <= 0;
     h.dashBar.classList.toggle('ready', ready);
     h.dashFill.style.width = `${ready ? 100 : 100 - (d.dashCd / d.dashMax) * 100}%`;
@@ -216,7 +242,7 @@ class UI {
         const rel = RELICS.find((r) => r.id === id);
         if (!rel) continue;
         h.relics.appendChild(
-          el('div', { class: 'relic-pip', 'data-r': rel.rarity, 'data-name': `${rel.name} · ${rel.desc}`, title: `${rel.name} · ${rel.desc}` }, [rel.icon || '◆'])
+          el('div', { class: 'relic-pip', 'data-r': rel.rarity, 'data-name': `${rel.name}：${rel.desc}`, title: `${rel.name}：${rel.desc}` }, [rel.icon || '◆'])
         );
       }
     }
@@ -295,13 +321,14 @@ class UI {
     const node = el('div', { class: 'screen title-screen' }, [
       el('div', { class: 'title-wrap' }, [
         el('h1', { class: 'logo', text: 'OUROBOROS' }),
-        el('p', { class: 'subtitle', text: '衔尾者 · 贪食蛇 × Roguelike' }),
+        el('p', { class: 'subtitle', text: '衔尾者 — 贪食蛇 × Roguelike' }),
+        el('p', { class: 'goal-line', text: '目标：下潜 12 层，击败万象之腹' }),
         el('div', { class: 'menu' }, [
           el('button', {
             class: 'btn primary',
             onclick: () => { audio.resume(); audio.sfx('uiok'); onStart(seedInput.value, startingRelic); },
           }, ['开始新的轮回']),
-          el('button', { class: 'btn', onclick: () => { audio.sfx('ui'); onSanctum(); } }, ['圣所 · 永久强化']),
+          el('button', { class: 'btn', onclick: () => { audio.sfx('ui'); onSanctum(); } }, ['圣所：永久强化']),
           el('button', { class: 'btn', onclick: () => { audio.sfx('ui'); onCodex(); } }, ['图鉴']),
         ]),
         el('div', { class: 'seed-row' }, [seedInput, dailyBtn].filter(Boolean)),
@@ -313,29 +340,30 @@ class UI {
         el('div', { class: 'best-line dim' }, [
           '最深 ',
           el('b', { class: 'num accent', text: String(d.bestDepth) }),
-          ' 层 · 最高分 ',
+          ' 层，最高分 ',
           el('b', { class: 'num gold', text: String(d.bestScore) }),
-          ' · 最长 ',
+          '，最长 ',
           el('b', { class: 'num ice', text: String(d.bestLength) }),
-          ' · 轮回 ',
+          ' 节，轮回 ',
           el('b', { class: 'num', text: String(d.runs) }),
-          ' · 回响 ',
+          ' 次，回响 ',
           el('b', { class: 'num gold', text: String(d.echoes) }),
         ]),
         footLinks(),
         el('div', { class: 'hint-keys' }, [
           el('div', { html: '<kbd>W A S D</kbd> / <kbd>方向键</kbd> 转向' }),
-          el('div', { html: '<kbd>SPACE</kbd> 突进（无敌帧 · 碾碎敌人）' }),
+          el('div', { html: '<kbd>SPACE</kbd> 突进（无敌帧，碾碎敌人）' }),
           el('div', { html: '<kbd>E</kbd> 交互 / 突破出口' }),
           el('div', { html: '<kbd>Q</kbd> 消耗 25 精华引爆冲击波' }),
-          el('div', { html: '<kbd>TAB</kbd> 图鉴 · <kbd>M</kbd> 静音' }),
+          el('div', { html: '<kbd>TAB</kbd> 图鉴，<kbd>M</kbd> 静音' }),
           el('div', { html: '<kbd>ESC</kbd> 暂停' }),
         ]),
       ]),
     ]);
     this.open('title', node);
     this.setHudVisible(false);
-    setTimeout(() => seedInput.focus(), 120);
+    // Don't pop the on-screen keyboard on touch devices.
+    if (window.matchMedia('(pointer:fine)').matches) setTimeout(() => seedInput.focus(), 120);
   }
 
   /* ---- sanctum ---- */
@@ -361,7 +389,7 @@ class UI {
                 onclick: () => {
                   if (meta.buyBranch(b.id)) { audio.sfx('uiok'); render(); } else audio.sfx('deny');
                 },
-              }, [`升级 · ${cost} 回响`]),
+              }, [`升级（${cost} 回响）`]),
         ]);
       });
 
@@ -379,7 +407,7 @@ class UI {
                 class: `btn sm${can ? ' primary' : ''}`,
                 disabled: can ? null : 'true',
                 onclick: () => { if (meta.buyUnlock(u.id)) { audio.sfx('uiok'); render(); } else audio.sfx('deny'); },
-              }, [`解锁 · ${u.cost} 回响`]),
+              }, [`解锁（${u.cost} 回响）`]),
         ]);
       });
 
@@ -398,7 +426,7 @@ class UI {
           el('div', {}, [el('div', { class: 'tip', style: 'margin-bottom:8px', text: '永久能力' }), el('div', { class: 'grid-b' }, nodes)]),
           el('div', {}, [el('div', { class: 'tip', style: 'margin-bottom:8px', text: '解锁' }), el('div', { class: 'grid-b' }, unlocks)]),
           el('div', { class: 'row', style: 'justify-content:space-between;margin-top:6px' }, [
-            el('span', { class: 'tip', text: '回响 = 深度 + 击杀 + 通关奖励' }),
+            el('span', { class: 'tip', text: '回响按深度、击杀与通关结算，层数越深加成越高' }),
             el('button', {
               class: 'btn sm ghost danger',
               onclick: () => {
@@ -429,7 +457,7 @@ class UI {
           sw: hex(e.color),
           icon: '◈',
           name: `${e.name}  ${e.en}`,
-          desc: `${e.desc}\nHP ${e.hp} · 伤害 ${e.dmg} · 速度 ${e.speed} 格/秒 · 经验 ${e.xp}`,
+          desc: `${e.desc}\nHP ${e.hp}，伤害 ${e.dmg}，速度 ${e.speed} 格/秒，经验 ${e.xp}（生命与经验随深度成长）`,
         }));
       } else if (active === 'relic') {
         entries = RELICS.map((r) => ({
@@ -492,26 +520,26 @@ class UI {
     const rowToggle = (label, key, invert = false) => {
       const shown = (v) => (invert ? !v : v);
       let cur = shown(s[key]);
-      const btn = el('button', { class: `toggle${cur ? ' on' : ''}`, text: cur ? 'ON' : 'OFF' });
+      const btn = el('button', { class: `toggle${cur ? ' on' : ''}`, text: cur ? '开' : '关' });
       btn.addEventListener('click', () => {
         const v = !meta.get('settings')[key];
         onSetting(key, v);
         cur = shown(v);
         btn.className = `toggle${cur ? ' on' : ''}`;
-        btn.textContent = cur ? 'ON' : 'OFF';
+        btn.textContent = cur ? '开' : '关';
         audio.sfx('ui');
       });
       return el('div', { class: 'settings-row' }, [el('span', { text: label }), btn]);
     };
 
     const node = el('div', { class: 'modal-bg' }, [
-      el('div', { class: 'panel stack', style: 'min-width:380px' }, [
+      el('div', { class: 'panel stack', style: 'min-width:min(380px, 100%)' }, [
         el('h2', { class: 'ttl', text: '暂停 PAUSED' }),
         el('div', { class: 'dim', style: 'font-size:12px;letter-spacing:.1em', text: '时间已停止' }),
         el('div', {}, [rowToggle('音效', 'muted', true), rowToggle('画面震动', 'shake'), rowToggle('显示 FPS', 'showFps')]),
         el('div', { class: 'kbd-help' }, [
           el('div', {}, [el('span', { text: '移动' }), el('span', { html: '<kbd>WASD</kbd> <kbd>↑↓←→</kbd>' })]),
-          el('div', {}, [el('span', { text: '突进（无敌 · 碾碎）' }), el('span', { html: '<kbd>SPACE</kbd>' })]),
+          el('div', {}, [el('span', { text: '突进（无敌，碾碎敌人）' }), el('span', { html: '<kbd>SPACE</kbd>' })]),
           el('div', {}, [el('span', { text: '交互 / 突破' }), el('span', { html: '<kbd>E</kbd>' })]),
           el('div', {}, [el('span', { text: '冲击波（25 精华）' }), el('span', { html: '<kbd>Q</kbd>' })]),
           el('div', {}, [el('span', { text: '图鉴' }), el('span', { html: '<kbd>TAB</kbd>' })]),
@@ -521,7 +549,7 @@ class UI {
           el('button', { class: 'btn primary', onclick: () => { audio.sfx('uiok'); onResume(); } }, ['继续']),
           el('button', { class: 'btn', onclick: () => { audio.sfx('ui'); onCodex(); } }, ['图鉴']),
           el('button', { class: 'btn', onclick: () => { audio.sfx('ui'); onSanctum(); } }, ['圣所']),
-          el('button', { class: 'btn ghost', onclick: () => { audio.sfx('ui'); onQuit(); } }, ['放弃轮回']),
+          el('button', { class: 'btn ghost', onclick: () => { audio.sfx('ui'); if (confirm('放弃本次轮回？只能保留 35% 的回响。')) onQuit(); } }, ['放弃轮回']),
         ]),
       ]),
     ]);
@@ -536,7 +564,7 @@ class UI {
       el('div', { class: 'panel stack wide' }, [
         el('div', { class: 'center' }, [
           el('h2', { class: 'ttl', text: '升级 LEVEL UP' }),
-          el('div', { class: 'dim', style: 'font-size:12px;letter-spacing:.2em', text: `等级 ${run.level} · 选择一项强化` }),
+          el('div', { class: 'dim', style: 'font-size:12px;letter-spacing:.2em', text: `等级 ${run.level}，选择一项强化` }),
         ]),
         el('div', { class: 'cards' }, options.map((u, i) => {
           const lvl = run.upgrades[u.id] || 0;
@@ -593,8 +621,8 @@ class UI {
     const newBest = run.maxDepth >= bests.depth && run.maxDepth > 0;
     const node = el('div', { class: 'screen' }, [
       el('div', { class: 'panel wrap stack center', style: 'max-width:820px' }, [
-        el('h1', { class: 'logo', style: `color:${won ? 'var(--gold)' : 'var(--danger)'};font-size:clamp(30px,6vw,64px)`, text: won ? 'VICTORY' : 'BECOMED FOOD' }),
-        el('p', { class: 'subtitle', text: won ? '万象之腹已被填满 · 轮回结束' : `你成为了别人的食物 · 止步第 ${run.maxDepth} 层 · 种子 ${seedLabel(run.seed)}` }),
+        el('h1', { class: 'logo', style: `color:${won ? 'var(--gold)' : 'var(--danger)'};font-size:clamp(30px,6vw,64px)`, text: won ? 'VICTORY' : 'BECAME FOOD' }),
+        el('p', { class: 'subtitle', text: won ? '万象之腹已被填满，轮回结束' : `你成为了别人的食物，止步第 ${run.maxDepth} 层，种子 ${seedLabel(run.seed)}` }),
         el('div', { class: 'result-grid' }, [
           stat('最深深度', run.maxDepth, true),
           stat('分数', run.score, true),
@@ -605,7 +633,7 @@ class UI {
           stat('精华', run.essence),
           stat('遗物', run.relics.length),
         ]),
-        el('div', { class: 'dim', style: 'font-size:12.5px;letter-spacing:.08em', text: `本局遗物：${run.relics.map((id) => (RELICS.find((r) => r.id === id) || {}).name).filter(Boolean).join(' · ') || '无'}` }),
+        el('div', { class: 'dim', style: 'font-size:12.5px;letter-spacing:.08em', text: `本局遗物：${run.relics.map((id) => (RELICS.find((r) => r.id === id) || {}).name).filter(Boolean).join('、') || '无'}` }),
         newBest ? el('div', { class: 'gold', style: 'letter-spacing:.2em;font-size:13px', text: '◆ 新纪录 ◆' }) : null,
         footLinks(),
         el('div', { class: 'row', style: 'justify-content:center;margin-top:8px' }, [

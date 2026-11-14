@@ -212,4 +212,4 @@ document.addEventListener('pointerdown', () => audio.resume(), { once: true });
 
 goTitle();
 
-window.__ouroboros = { game, ui, state, meta, RELICS, DEPTH_NAMES };
+window.__ouroboros = { game, ui, state, meta, RELICS, DEPTH_NAMES, pause, resume };

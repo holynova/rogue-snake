@@ -7,17 +7,17 @@ export const META_BRANCHES = [
   { id: 'fangs', name: '獠牙', icon: '✦', desc: '每级 +1 起始伤害', max: 10, cost: (l) => 14 + l * 9 },
   { id: 'swift', name: '轻身', icon: '»', desc: '每级 +4% 移动速度', max: 8, cost: (l) => 16 + l * 11 },
   { id: 'greed', name: '拾遗', icon: '◈', desc: '每级 +8% 精华获取', max: 8, cost: (l) => 10 + l * 7 },
-  { id: 'aegis', name: '护佑', icon: '⬢', desc: '每级 开局获得 1 点护盾', max: 3, cost: (l) => 40 + l * 45 },
-  { id: 'omen', name: '预兆', icon: '☾', desc: '每级 开局视野 +1', max: 6, cost: (l) => 18 + l * 10 },
+  { id: 'aegis', name: '护佑', icon: '⬢', desc: '每级开局获得 1 点护盾', max: 3, cost: (l) => 40 + l * 45 },
+  { id: 'omen', name: '预兆', icon: '☾', desc: '每级开局视野 +1', max: 6, cost: (l) => 18 + l * 10 },
 ];
 
 export const UNLOCKS = [
-  { id: 's_ember', name: '起始遗物 · 余烬', cost: 40, branch: 'startingRelic', value: 'ember' },
-  { id: 's_pearl', name: '起始遗物 · 珠鳞', cost: 60, branch: 'startingRelic', value: 'pearl' },
-  { id: 's_fang', name: '起始遗物 · 幼牙', cost: 90, branch: 'startingRelic', value: 'fang' },
-  { id: 's_root', name: '起始遗物 · 根须', cost: 130, branch: 'startingRelic', value: 'root' },
-  { id: 's_lamp', name: '起始遗物 · 提灯', cost: 70, branch: 'startingRelic', value: 'lamp' },
-  { id: 'c_daily', name: '每日种子与试炼词条', cost: 110, branch: 'daily' },
+  { id: 's_ember', name: '起始遗物：余烬', cost: 40, branch: 'startingRelic', value: 'ember' },
+  { id: 's_pearl', name: '起始遗物：珠鳞', cost: 60, branch: 'startingRelic', value: 'pearl' },
+  { id: 's_fang', name: '起始遗物：幼牙', cost: 90, branch: 'startingRelic', value: 'fang' },
+  { id: 's_root', name: '起始遗物：根须', cost: 130, branch: 'startingRelic', value: 'root' },
+  { id: 's_lamp', name: '起始遗物：提灯', cost: 70, branch: 'startingRelic', value: 'lamp' },
+  { id: 'c_daily', name: '每日种子', cost: 110, branch: 'daily' },
 ];
 
 const DEFAULTS = {
