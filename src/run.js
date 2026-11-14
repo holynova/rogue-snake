@@ -124,7 +124,11 @@ export function offerUpgrades(run, count = 3) {
 export function takeUpgrade(run, upgrade) {
   const cur = run.upgrades[upgrade.id] || 0;
   run.upgrades[upgrade.id] = cur + 1;
-  const times = run.bonus.ascend > 0 ? (run.bonus.ascend >= 1 ? 2 : 1) : 1;
+  // Fractional ascend (e.g. 0.5 from one 升华之鳞) rolls for a second apply,
+  // so a single relic actually does something instead of rounding to nothing.
+  let times = 1 + Math.floor(run.bonus.ascend);
+  const frac = run.bonus.ascend - Math.floor(run.bonus.ascend);
+  if (frac > 0 && run.rng.chance(frac)) times += 1;
   for (let i = 0; i < times; i++) upgrade.apply(run);
   run.hp = Math.min(run.hp, maxHp(run));
 }

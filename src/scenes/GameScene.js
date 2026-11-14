@@ -141,6 +141,10 @@ export class GameScene extends Phaser.Scene {
       .setAlpha(0.3)
       .setDepth(2);
 
+    // Per-floor one-shot hints (stair cost / exit open) reset each floor so
+    // the cost shown is always the current floor's.
+    this.stairHintT = 0;
+    this.stairOpenT = false;
     this.cam = this.cameras.main;
     this.cam.setBounds(0, 0, this.dungeon.w * TILE, this.dungeon.h * TILE);
     this.cam.centerOn(s.x * TILE, s.y * TILE);
@@ -222,10 +226,20 @@ export class GameScene extends Phaser.Scene {
 
   updateSnakeVisual() {
     const n = this.body.length;
+    // The sprite pool is built once per floor; growing mid-floor (food,
+    // 巨颚) used to leave the new tail segments invisible, and shrinking
+    // left ghost segments behind. Grow the pool on demand, hide the rest.
+    while (this.segSprites.length < n) {
+      const img = this.add.image(0, 0, 'snake_body');
+      this.actorLayer.add(img);
+      this.segSprites.push(img);
+    }
+    for (let i = n; i < this.segSprites.length; i++) this.segSprites[i].setVisible(false);
     for (let i = 0; i < n; i++) {
       const seg = this.body[n - 1 - i];
       const img = this.segSprites[i];
       if (!img) continue;
+      img.setVisible(true);
       img.setPosition(seg.x * TILE, seg.y * TILE);
       const t = i / Math.max(1, n - 1);
       const color = Phaser.Display.Color.HSVToRGB((148 + t * 26) / 360, 0.7, 0.62 - t * 0.2);
@@ -462,7 +476,7 @@ export class GameScene extends Phaser.Scene {
     const h = this.headTile();
     if (this.run.essence < 25) {
       audio.sfx('deny');
-      this.floatAt(h.x, h.y, '精华不足 25', COLORS.dim);
+      this.floatAt(h.x, h.y, '需要 25 精华', COLORS.dim);
       return;
     }
     this.blastAt(h.x, h.y, 0x7fd8ff);
@@ -606,6 +620,9 @@ export class GameScene extends Phaser.Scene {
 
     let growing = run.length < Run.cap(run);
     if (growing && run.bonus.growth > 0 && this.floorRng.chance(run.bonus.growth)) run.growth += 1;
+    // Pending growth from 巨颚 converts immediately; without this it only
+    // materialised on the next food pickup, contradicting its description.
+    if (run.growth > 0) Run.grow(run, 0);
 
     if (!d.isWalkable(nx, ny)) {
       this.solidHit(nx, ny);
@@ -641,7 +658,10 @@ export class GameScene extends Phaser.Scene {
     this.shake(6, 180);
     audio.sfx('hurt');
     this.burst(nx, ny, 0x9fb0c8, 7);
-    this.hurt(1 + run.bonus.wallDmg, 'wall');
+    // 缓冲鳞 makes wallDmg negative; a zero-or-less hit still stumbles you
+    // (shake + sound above) but no longer costs HP.
+    const wallDmg = 1 + run.bonus.wallDmg;
+    if (wallDmg > 0) this.hurt(wallDmg, 'wall');
     this.pruneIntoWall();
     this.acc = 0.15;          // a short stumble, not a lock-up
   }
@@ -669,7 +689,10 @@ export class GameScene extends Phaser.Scene {
       run.growth = 0;
       this.trimBody();
     }
-    this.hurt(Math.max(1, run.bonus.selfHarm), 'self');
+    // 虚化 drops selfHarm to 0; hurt() clamps to >=1, so skip the call
+    // entirely instead of asking it to deal 0 damage.
+    const selfDmg = Math.max(0, run.bonus.selfHarm);
+    if (selfDmg > 0) this.hurt(selfDmg, 'self');
   }
 
   trimBody() {
@@ -698,10 +721,9 @@ export class GameScene extends Phaser.Scene {
     switch (p.type) {
       case 'food': {
         Run.grow(run, 1);
-        if (run.bonus.leech >= 2) run.hp = Math.min(Run.maxHp(run), run.hp + 1);
-        else if (run.bonus.leech === 1 && run.hp < Run.maxHp(run) && this.floorRng.chance(0.5)) {
-          run.hp = Math.min(Run.maxHp(run), run.hp + 1);
-        }
+        // 愈合: every level heals +1 per meal (the old code healed 1 at best
+        // and only on a coin flip at level 1, so levels 2-4 did nothing).
+        if (run.bonus.leech > 0) run.hp = Math.min(Run.maxHp(run), run.hp + run.bonus.leech);
         this.burst(x, y, 0xff5c7a, 12);
         audio.sfx('eat');
         this.floatAt(x, y, '+1 节', 0xff8a4c, 14);
@@ -863,7 +885,18 @@ export class GameScene extends Phaser.Scene {
       return;
     }
     run.hp -= dmg;
-    this.invuln = 0.6;
+    // 镜鳞: 3 seconds of immunity after taking a hit (default 0.6s).
+    this.invuln = run.flags.mirror ? 3 : 0.6;
+    // 荆棘鳞 / 棘刺鳞衣: melee hits reflect damage to adjacent enemies.
+    if (source === 'enemy' && run.bonus.thorns > 0) {
+      const h = this.headTile();
+      for (const e of [...this.enemies]) {
+        if (e.hp > 0 && Math.abs(e.x - h.x) + Math.abs(e.y - h.y) <= 1) {
+          this.damageEnemy(e, run.bonus.thorns, { silent: true });
+        }
+      }
+      this.floatAt(h.x, h.y, `反弹 ${run.bonus.thorns}`, 0x7cffb2, 15);
+    }
     this.hitStop = 0.07;
     this.shake(11, 320);
     this.cameras.main.flash(90, 90, 12, 22);
@@ -905,7 +938,8 @@ export class GameScene extends Phaser.Scene {
     const remaining = this.enemies.filter((e) => e.hp > 0).length;
     if (remaining > 0 && !this.stairHintT) {
       this.stairHintT = this.clock + 2.5;
-      this.floatAt(this.dungeon.exit.x, this.dungeon.exit.y, '清空敌人才可离开 · 或按 E 花费精华突破', COLORS.danger, 14);
+      const cost = 30 + remaining * 8;
+      this.floatAt(this.dungeon.exit.x, this.dungeon.exit.y, `清空敌人才可离开，或按 E 花 ${cost} 精华突破`, COLORS.danger, 14);
     }
     if (remaining === 0 && !this.stairOpenT) {
       this.stairOpenT = true;
@@ -929,7 +963,7 @@ export class GameScene extends Phaser.Scene {
     if (relic) {
       Run.addRelic(run, relic);
       meta.reveal('relic', relic.id);
-      this.banner(`遗物 · ${relic.name}`, relic.desc, '#ffd166');
+      this.banner(`遗物：${relic.name}`, relic.desc, '#ffd166');
       this.floatAt(p.x, p.y, relic.icon || '◆', 0xffd166, 40);
     } else {
       this.floatAt(p.x, p.y, '空箱子', COLORS.dim, 16);
@@ -1272,6 +1306,8 @@ export class GameScene extends Phaser.Scene {
       dashCd: this.dashCd,
       dashMax: Run.dashCooldown(this.run),
       damage: Run.biteDamage(this.run),
+      showFps: meta.get('settings').showFps,
+      fps: Math.round(this.game.loop.actualFps),
       enemies: this.enemies.filter((e) => e.hp > 0).length,
       hunt: this.nearestEnemy(),
       relics: this.run.relics,

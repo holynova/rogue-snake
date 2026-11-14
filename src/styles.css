@@ -107,6 +107,12 @@ h1.logo {
   margin: 0 0 26px;
   text-transform: uppercase;
 }
+.goal-line {
+  color: var(--gold);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  margin: -14px 0 4px;
+}
 h2.ttl {
   font-family: var(--mono);
   font-size: 20px;
@@ -465,6 +471,33 @@ kbd-help div { display: flex; justify-content: space-between; gap: 18px; }
 @media (max-width: 720px) {
   .hint-keys { display: none; }
   .bar { width: 120px; }
+}
+
+/* Touch controls: only on coarse pointers (phones/tablets). The HUD is
+   pointer-events:none, so the buttons re-enable it explicitly. */
+.touch-controls { display: none; }
+@media (pointer: coarse) {
+  .touch-controls {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    pointer-events: auto;
+  }
+}
+.touch-btn {
+  pointer-events: auto;
+  touch-action: manipulation;
+  min-height: 44px;
+  padding: 10px 16px;
+  font-size: 13px;
+}
+
+/* Narrow phones: let the HUD top row wrap instead of overflowing. */
+@media (max-width: 560px) {
+  .hud-top { flex-wrap: wrap; }
+  .hud-top > .cluster.mid { order: 3; flex-basis: 100%; }
+  .hud-top .cluster .row { flex-wrap: wrap; }
 }
 
 /* ------------------------------ project links ------------------------------ */

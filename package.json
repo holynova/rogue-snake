@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --port 4173",
-    "test": "node scripts/acceptance.mjs && node scripts/steering.mjs",
+    "test": "node scripts/acceptance.mjs && node scripts/steering.mjs && node scripts/audit-fixes.mjs",
     "acceptance": "node scripts/acceptance.mjs",
     "steering": "node scripts/steering.mjs",
     "playtest": "node scripts/playtest.mjs",
