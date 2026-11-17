@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="1200" height="360" viewBox="0 0 1200 360"
+     role="img" aria-labelledby="title desc">
+  <title id="title">衔尾者 OUROBOROS · Rogue Snake — 贪食蛇 × Roguelike 地牢</title>
+  <desc id="desc">深色地牢底标题：衔尾者，副标题蛇身既是身体，也是战斗资源；右侧是一条首尾相衔的绿蛇盘成圆环，中央写着 12 层地牢。</desc>
+
+  <rect width="1200" height="360" rx="26" fill="#0a0e18"/>
+
+  <g id="title-block" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">
+    <text x="56" y="62" font-size="19" letter-spacing="3" fill="#8296b4">贪食蛇 × ROGUELIKE · SNAKE DUNGEON ROGUELIKE</text>
+    <text x="56" y="128" font-size="62" font-weight="700" fill="#e8f0ff">衔尾者</text>
+    <text x="56" y="168" font-size="23" fill="#7cffb2">OUROBOROS — 蛇身既是身体，也是战斗资源</text>
+    <text x="56" y="204" font-size="19" fill="#b9c4d6">撕咬、突进、拾遗物，清空敌人，下潜 12 层。</text>
+    <g id="chips" font-size="18" fill="#e8f0ff" text-anchor="middle">
+      <g><rect x="56" y="238" width="126" height="36" rx="18" fill="#141b2c" stroke="#2b3550" stroke-width="1.5"/><text x="119" y="262">12 层地牢</text></g>
+      <g><rect x="194" y="238" width="150" height="36" rx="18" fill="#141b2c" stroke="#2b3550" stroke-width="1.5"/><text x="269" y="262">23 种遗物</text></g>
+      <g><rect x="356" y="238" width="150" height="36" rx="18" fill="#141b2c" stroke="#2b3550" stroke-width="1.5"/><text x="431" y="262">24 种强化</text></g>
+      <g><rect x="518" y="238" width="168" height="36" rx="18" fill="#141b2c" stroke="#2b3550" stroke-width="1.5"/><text x="602" y="262">圣所永久强化</text></g>
+    </g>
+  </g>
+
+  <g id="ouroboros" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">
+    <g id="snake-body" transform="rotate(-30 950 170)">
+      <circle cx="950" cy="170" r="95" fill="none" stroke="#2fae6b" stroke-width="26" stroke-dasharray="520 77" stroke-linecap="round"/>
+      <circle cx="950" cy="170" r="95" fill="none" stroke="#3ecf82" stroke-width="12" stroke-dasharray="520 77" stroke-linecap="round" opacity="0.7"/>
+    </g>
+    <g id="snake-head">
+      <circle cx="971" cy="78" r="22" fill="#3ecf82" stroke="#1d7a4a" stroke-width="2"/>
+      <circle cx="963" cy="72" r="3.5" fill="#0a0e18"/>
+      <circle cx="979" cy="72" r="3.5" fill="#0a0e18"/>
+      <path d="M 971 98 L 971 110 M 966 110 L 971 104 L 976 110" stroke="#ff4d6d" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    </g>
+    <g id="snake-tail">
+      <circle cx="1032" cy="123" r="10" fill="#2fae6b"/>
+    </g>
+    <text x="950" y="172" font-size="52" font-weight="700" fill="#e8f0ff" text-anchor="middle">12</text>
+    <text x="950" y="204" font-size="19" fill="#8296b4" text-anchor="middle">层地牢 · DEPTHS</text>
+    <text x="950" y="330" font-size="18" fill="#8296b4" text-anchor="middle">每 5 层镇守 Boss · 最深处万象之腹</text>
+  </g>
+</svg>
